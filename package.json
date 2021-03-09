@@ -1,0 +1,30 @@
+{
+    "name": "ftp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "pkg-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/img/icon.icns --prune=true --out=release-builds",
+        "pkg-win": "electron-packager . ftp --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/img/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"ftp\"",
+        "pkg-linux": "electron-packager . ftp --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/img/icon.png --prune=true --out=release-builds"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "autoprefixer": "^10.2.4",
+        "basic-ftp": "^4.6.3",
+        "electron": "^11.2.3",
+        "electron-save-file": "^1.0.2",
+        "ftp": "^0.3.10",
+        "jquery": "^3.5.1",
+        "open": "^7.4.2",
+        "request": "^2.88.2",
+        "request-promise": "^4.2.6",
+        "uniq": "^1.0.1",
+        "valid-url": "^1.0.9"
+    },
+    "devDependencies": {
+        "electron-packager": "^15.2.0"
+    }
+}

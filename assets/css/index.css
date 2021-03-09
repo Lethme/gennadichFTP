@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
+.output {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    margin-bottom: 2px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.flex-row {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.flex-row div {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin: 2px;
+    border: 1px solid rgba(0, 0, 0, .2);
+    box-shadow: 0px 0px 3px 2px rgba(0, 0, 0, .1);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.file-list {
+    margin: 0;
+    width: 100%;
+    user-select: none;
+}
+
+.file-list-item {
+    margin: 2px 0 !important;
+    height: 25px !important;
+    padding: 2px 5px !important;
+    display: flex;
+    border: none !important;
+    box-shadow: none !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    transition: all .2s ease;
+}
+
+.file-list-item:hover {
+    background: #56999366;
+}
+
+.file-list-img {
+    width: 18px;
+    height: 18px;
+}
+
+.file-list-filename {
+    width: 100%;
+    margin-left: 3px;
+    font-size: .85em;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.server-controls,
+.client-controls {
+    display: flex;
+    flex-direction: row !important;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.up-btn {
+    width: 24px !important;
+    height: 24px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #569993;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 20%;
+    transition: all .2s ease;
+}
+
+.up-btn:hover {
+    background: #2abbac;
+}
+
+.up-btn-icon {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.up-btn-trigger {
+    position: absolute;
+    width: 24px !important;
+    height: 24px !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 20%;
+    cursor: pointer;
+}
+
+.path {
+    width: 90% !important;
+    margin-left: 3px !important;
+}
+
+#server-path,
+#client-path {
+    font-size: .9em;
+    height: 30px;
+    border: none;
+    font-family: 'Open Sans', sans-serif;
+    padding: 0;
+    margin: 0 0 0 5px;
+}
