@@ -92,7 +92,6 @@
                     );
                 }
             });
-            //addFileList('server', files);
         });
 
         function clearFileList(listType = 'server') {
@@ -100,22 +99,6 @@
                 $('.server-files .file-list').empty();
             } else if (listType === 'client') {
                 $('.client-files .file-list').empty();
-            }
-        }
-
-        function addFileList(listType = 'server', files) {
-            if (listType === 'server') {
-                files.forEach(file => {
-                    $('.server-file .file-list').append(
-                        file.type === 'd' ? `<div class="file-list-item">
-                        <img class="file-list-img" src="./assets/img/file-list/dir.png">
-                        <li class="file-list-filename">` + file.name + `</li>
-                        </div>` : `<div class="file-list-item">
-                        <img class="file-list-img" src="./assets/img/file-list/file.png">
-                        <li class="file-list-filename">` + file.name + `</li>
-                        </div>`
-                    );
-                });
             }
         }
     </script>
