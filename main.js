@@ -1,17 +1,63 @@
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
-const request = require('request');
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 
 const ftp = require("basic-ftp");
 
 let mainWindow;
 let connectWindow;
+let promptWindow;
 
 let connection = false;
+let updater;
 
 const client = new ftp.Client();
+
+let fileContextMenu = new Menu.buildFromTemplate([{
+    label: 'Create Directory',
+    icon: './assets/img/file-list/dir.png',
+    click() {
+        if (connection) {
+            promptWindow = new BrowserWindow({
+                width: 700,
+                height: 180,
+                icon: __dirname + "/assets/img/icon.png",
+                slashes: true,
+                webPreferences: {
+                    nativeWindowOpen: true,
+                    nodeIntegrationInWorker: true,
+                    nodeIntegration: true
+                },
+                parent: mainWindow,
+                modal: true,
+                maximizable: false,
+                fullscreenable: false,
+                resizable: false
+            });
+
+            promptWindow.setMenu(Menu.buildFromTemplate(secondaryMenuTemplate));
+
+            promptWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'prompt.html'),
+                protocol: 'file:',
+                slashes: true,
+            }));
+
+            promptWindow.on('closed', () => {
+                promptWindow = null;
+            });
+
+            ipcMain.on('item', (e, dirname) => {
+                if (promptWindow) {
+                    promptWindow.close();
+                    promptWindow = null;
+                }
+                mkdir(dirname);
+            });
+        }
+    }
+}]);
 
 const secondaryMenuTemplate = [{
     label: 'File',
@@ -41,7 +87,24 @@ const mainMenuTemplate = [{
         label: 'Connect',
         accelerator: 'CmdOrCtrl+Shift+C',
         click() {
-            if (connection) return;
+            if (connection) {
+                let result = dialog.showMessageBoxSync({
+                    type: 'question',
+                    buttons: ['Yes', 'No'],
+                    defaultId: 1,
+                    title: 'Connection is already opened',
+                    message: 'Do you want to continue?',
+                    detail: 'Current connection will be closed.',
+                    noLink: true
+                });
+
+                if (result === 1) {
+                    return;
+                } else {
+                    disconnect();
+                }
+            }
+
             connectWindow = new BrowserWindow({
                 width: 700,
                 height: 375,
@@ -136,6 +199,11 @@ app.on('ready', () => {
         win = null;
         app.quit();
     });
+
+    mainWindow.webContents.on('context-menu', (e) => {
+        e.preventDefault();
+        if (connection) fileContextMenu.popup();
+    });
 });
 
 app.on('window-all-closed', () => {
@@ -158,6 +226,11 @@ async function updateList() {
     mainWindow.webContents.send('ftp:list', await client.list());
 }
 
+async function mkdir(dirname) {
+    await client.ensureDir(dirname);
+    updateList();
+}
+
 async function cd(dirname) {
     let curdir = await client.pwd();
     await client.cd(path.join(curdir, dirname));
@@ -169,9 +242,15 @@ async function cdup() {
     updateList();
 }
 
+function clearList(listType = 'server') {
+    mainWindow.webContents.send('list:clear', listType);
+}
+
 async function connect(host = 'localhost', port = 21, user = 'guest', password = 'guest') {
     client.close();
-    client.ftp.verbose = true;
+    clearList('server');
+    //clearInterval(updater);
+    //client.ftp.verbose = true;
     try {
         await client.access({
             host: host,
@@ -179,16 +258,19 @@ async function connect(host = 'localhost', port = 21, user = 'guest', password =
             password: password,
             port: port
         });
+        //updater = setInterval(updateList, 1000);
         updateList();
         connection = true;
     } catch (err) {
-        console.log(err);
+        // console.log(err);
     }
 }
 
-function disconnect() {
+async function disconnect() {
     if (connection) {
         client.close();
+        clearList('server');
+        //clearInterval(updater);
         connection = false;
     }
 }

@@ -37,14 +37,14 @@
         <div class="flex-row">
             <div class="server-files">
                 <ul class="file-list server-file-list">
-                    <div class="file-list-item">
+                    <!-- <div class="file-list-item">
                         <img class="file-list-img" src="./assets/img/file-list/dir.png">
                         <li class="file-list-filename">../</li>
                     </div>
                     <div class="file-list-item">
                         <img class="file-list-img" src="./assets/img/file-list/file.png">
                         <li class="file-list-filename">Test.txt</li>
-                    </div>
+                    </div> -->
                 </ul>
             </div>
             <div class="client-files"></div>
@@ -77,11 +77,24 @@
         });
 
         $('.server-up-btn-trigger').on('click', () => {
-            ipcRenderer.send('ftp:updir');
+            if (current_path !== '/') ipcRenderer.send('ftp:updir');
+        });
+
+        ipcRenderer.on('list:clear', (e, listType) => {
+            clearFileList(listType);
+            if (listType === 'server') {
+                $('#server-path').val('');
+            } else if (listType === 'client') {
+                $('#client-path').val('');
+            }
         });
 
         ipcRenderer.on('ftp:list', (e, files) => {
             clearFileList('server');
+            files.sort((a, b) => {
+                if (a.type === 2) return -1;
+                return 1;
+            });
             console.log(files);
             if (current_path !== '/') {
                 $('.server-file-list').append(

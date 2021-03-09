@@ -16,17 +16,14 @@
     <link rel="stylesheet" href="./assets/css/style.css">
     <link rel="stylesheet" href="./assets/css/connect.css">
 
-    <title>HTTP</title>
+    <title>Crete Directory</title>
 </head>
 
 <body>
     <div id="page">
         <form id="test_form">
-            <input type="text" id="host" value="localhost" placeholder="Hostname" autofocus required>
-            <input type="text" id="port" value="21" placeholder="Port" pattern="\d+" required>
-            <input type="text" id="user" value="guest" placeholder="User" required>
-            <input type="password" id="password" value="guest" placeholder="Password">
-            <button class="form-btn" type="submit" name="action">Connect</button>
+            <input type="text" id="item" value="" placeholder="Directory Name" autofocus>
+            <button class="form-btn" type="submit" name="action">Create</button>
         </form>
     </div>
 
@@ -50,11 +47,8 @@
 
         $('#test_form').on('submit', (e) => {
             e.preventDefault();
-            let host = $('#host').val();
-            let port = $('#port').val();
-            let user = $('#user').val();
-            let password = $('#password').val();
-            ipcRenderer.send('ftp:connection-established', host, port, user, password);
+            let item = $('#item').val();
+            ipcRenderer.send('item', item);
         });
     </script>
 </body>
