@@ -146,11 +146,11 @@ app.on('window-all-closed', () => {
 //process.env.NODE_ENV = 'production';
 
 ipcMain.on('ftp:cd', (e, dirname) => {
-    cd(dirname);
+    if (!client.closed) cd(dirname);
 });
 
 ipcMain.on('ftp:updir', (e) => {
-    cdup();
+    if (!client.closed) cdup();
 });
 
 async function updateList() {
@@ -170,6 +170,7 @@ async function cdup() {
 }
 
 async function connect(host = 'localhost', port = 21, user = 'guest', password = 'guest') {
+    client.close();
     client.ftp.verbose = true;
     try {
         await client.access({

@@ -68,10 +68,12 @@
         const {
             ipcRenderer
         } = electron;
-        const Client = require('ftp');
+
+        let current_path = '';
 
         ipcRenderer.on('ftp:pwd', (e, path) => {
             $('#server-path').val(path);
+            current_path = path;
         });
 
         $('.server-up-btn-trigger').on('click', () => {
@@ -81,6 +83,11 @@
         ipcRenderer.on('ftp:list', (e, files) => {
             clearFileList('server');
             console.log(files);
+            if (current_path !== '/') {
+                $('.server-file-list').append(
+                    `<div class="file-list-item" onclick="ipcRenderer.send('ftp:updir');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename">../</li></div>`
+                );
+            }
             files.forEach(file => {
                 if (file.type === 2) {
                     $('.server-file-list').append(
