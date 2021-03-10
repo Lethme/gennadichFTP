@@ -30,9 +30,13 @@
                     <object class="up-btn-icon" type="image/svg+xml" data="./assets/img/file-list/up-white.svg"></object>
                     <div class="server-up-btn-trigger up-btn-trigger"></div>
                 </div>
+                <div class="del-btn">
+                    <object class="del-btn-icon" type="image/svg+xml" data="./assets/img/file-list/bin-white.svg"></object>
+                    <div class="server-del-btn-trigger del-btn-trigger"></div>
+                </div>
                 <input type="text" id="server-path" readonly>
             </div>
-            <div class="client-controls"></div>
+            <!-- <div class="client-controls"></div> -->
         </div>
         <div class="flex-row">
             <div class="server-files">
@@ -47,9 +51,11 @@
                     </div> -->
                 </ul>
             </div>
-            <div class="client-files"></div>
+            <!-- <div class="client-files"></div> -->
         </div>
     </div>
+
+    <div class="statusbar"></div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -70,6 +76,11 @@
         } = electron;
 
         let current_path = '';
+
+        $('.file-list').on('mousemove', e => {
+            let item = $('.file-list-item:hover');
+            console.log(item.attr('name'));
+        });
 
         ipcRenderer.on('ftp:pwd', (e, path) => {
             $('#server-path').val(path);
@@ -104,11 +115,11 @@
             files.forEach(file => {
                 if (file.type === 2) {
                     $('.server-file-list').append(
-                        `<div class="file-list-item" onclick="ipcRenderer.send('ftp:cd', '` + file.name + `');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename">` + file.name + `</li></div>`
+                        `<div class="file-list-item" name="dir" onclick="ipcRenderer.send('ftp:cd', '` + file.name + `');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename">` + file.name + ' (' + file.size + ` bytes)</li></div>`
                     );
                 } else if (file.type === 1) {
                     $('.server-file-list').append(
-                        `<div class="file-list-item"><img class="file-list-img" src="./assets/img/file-list/file.png"><li class="file-list-filename">` + file.name + ' (' + file.size + ` bytes)</li></div>`
+                        `<div class="file-list-item" name="file"><img class="file-list-img" src="./assets/img/file-list/file.png"><li class="file-list-filename">` + file.name + ' (' + file.size + ` bytes)</li></div>`
                     );
                 }
             });

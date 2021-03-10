@@ -222,8 +222,19 @@ ipcMain.on('ftp:updir', (e) => {
 });
 
 async function updateList() {
-    mainWindow.webContents.send('ftp:pwd', await client.pwd());
-    mainWindow.webContents.send('ftp:list', await client.list());
+    // mainWindow.webContents.send('ftp:pwd', await client.pwd());
+    // mainWindow.webContents.send('ftp:list', await client.list());
+    let pwd = await client.pwd();
+    let list = await client.list();
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].type === 2) {
+            await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
+                list[i].size = result.size;
+            });
+        }
+    }
+    mainWindow.webContents.send('ftp:pwd', pwd);
+    mainWindow.webContents.send('ftp:list', list);
 }
 
 async function mkdir(dirname) {
@@ -259,10 +270,20 @@ async function connect(host = 'localhost', port = 21, user = 'guest', password =
             port: port
         });
         //updater = setInterval(updateList, 1000);
-        updateList();
+        let pwd = await client.pwd();
+        let list = await client.list();
         connection = true;
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].type === 2) {
+                await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
+                    list[i].size = result.size;
+                });
+            }
+        }
+        mainWindow.webContents.send('ftp:pwd', pwd);
+        mainWindow.webContents.send('ftp:list', list);
     } catch (err) {
-        // console.log(err);
+        console.log(err);
     }
 }
 
@@ -272,5 +293,25 @@ async function disconnect() {
         clearList('server');
         //clearInterval(updater);
         connection = false;
+    }
+}
+
+async function dirSize(directory) {
+    if (connection) {
+        let list = await client.list(directory);
+        let directories = [];
+        let size = 0;
+        list.forEach(file => {
+            if (file.type === 1) {
+                size += file.size;
+            }
+            if (file.type === 2) directories.push(file);
+        });
+        for (const dir of directories) {
+            await dirSize(directory === '/' ? '/' + dir.name : directory + '/' + dir.name).then((res) => {
+                size += res.size;
+            });
+        }
+        return { size, directories };
     }
 }

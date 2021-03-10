@@ -38,6 +38,7 @@
     margin: 0;
     width: 100%;
     user-select: none;
+    overflow: auto;
 }
 
 .file-list-item {
@@ -78,7 +79,8 @@
     align-items: center;
 }
 
-.up-btn {
+.up-btn,
+.del-btn {
     width: 24px !important;
     height: 24px !important;
     display: flex;
@@ -91,16 +93,19 @@
     transition: all .2s ease;
 }
 
-.up-btn:hover {
+.up-btn:hover,
+.del-btn:hover {
     background: #2abbac;
 }
 
-.up-btn-icon {
+.up-btn-icon,
+.del-btn-icon {
     width: 18px !important;
     height: 18px !important;
 }
 
-.up-btn-trigger {
+.up-btn-trigger,
+.del-btn-trigger {
     position: absolute;
     width: 24px !important;
     height: 24px !important;
