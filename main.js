@@ -8,8 +8,10 @@ const ftp = require("basic-ftp");
 let mainWindow;
 let connectWindow;
 let promptWindow;
+let propertyWindow;
 
 let connection = false;
+let hostname = '';
 let updater;
 
 const client = new ftp.Client();
@@ -45,17 +47,69 @@ let fileContextMenu = new Menu.buildFromTemplate([{
             }));
 
             promptWindow.on('closed', () => {
-                promptWindow = null;
+                promptWindow = undefined;
             });
 
             ipcMain.on('item', (e, dirname) => {
                 if (promptWindow) {
                     promptWindow.close();
-                    promptWindow = null;
+                    promptWindow = undefined;
                 }
                 mkdir(dirname);
             });
         }
+    }
+}, {
+    label: 'Refresh',
+    icon: './assets/img/file-list/refresh.png',
+    click() {
+        if (connection) updateList();
+    }
+}, {
+    label: 'Properties',
+    icon: './assets/img/file-list/property.png',
+    click() {
+        mainWindow.webContents.send('ftp:selected');
+        ipcMain.on('ftp:selected', (e, type, name) => {
+            if (connection && type === 'dir' && propertyWindow === undefined) {
+                propertyWindow = new BrowserWindow({
+                    width: 700,
+                    height: 180,
+                    icon: __dirname + "/assets/img/icon.png",
+                    slashes: true,
+                    webPreferences: {
+                        nativeWindowOpen: true,
+                        nodeIntegrationInWorker: true,
+                        nodeIntegration: true
+                    },
+                    parent: mainWindow,
+                    modal: true,
+                    maximizable: false,
+                    fullscreenable: false,
+                    resizable: false
+                });
+
+                propertyWindow.setMenu(Menu.buildFromTemplate(secondaryMenuTemplate));
+
+                propertyWindow.loadURL(url.format({
+                    pathname: path.join(__dirname, 'property.html'),
+                    protocol: 'file:',
+                    slashes: true,
+                }));
+
+                propertyWindow.on('closed', () => {
+                    propertyWindow = undefined;
+                });
+
+                propertyWindow.on('ready-to-show', () => {
+                    client.pwd().then(pwd => {
+                        dirSize(pwd === '/' ? pwd + name : pwd + '/' + name).then(result => {
+                            propertyWindow.webContents.send('ftp:properties', pwd === '/' ? pwd + name : pwd + '/' + name, result.size);
+                        });
+                    });
+                });
+            }
+        });
     }
 }]);
 
@@ -131,13 +185,13 @@ const mainMenuTemplate = [{
             }));
 
             connectWindow.on('closed', () => {
-                connectWindow = null;
+                connectWindow = undefined;
             });
 
             ipcMain.on('ftp:connection-established', (e, host, port, user, password) => {
                 if (connectWindow) {
                     connectWindow.close();
-                    connectWindow = null;
+                    connectWindow = undefined;
                 }
                 connect(host, port, user, password);
             });
@@ -221,16 +275,22 @@ ipcMain.on('ftp:updir', (e) => {
     if (!client.closed) cdup();
 });
 
+async function pwd() {
+    return await client.pwd();
+}
+
 async function updateList() {
     // mainWindow.webContents.send('ftp:pwd', await client.pwd());
     // mainWindow.webContents.send('ftp:list', await client.list());
     let pwd = await client.pwd();
     let list = await client.list();
-    for (let i = 0; i < list.length; i++) {
-        if (list[i].type === 2) {
-            await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
-                list[i].size = result.size;
-            });
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].type === 2) {
+                await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
+                    list[i].size = result.size;
+                });
+            }
         }
     }
     mainWindow.webContents.send('ftp:pwd', pwd);
@@ -244,7 +304,7 @@ async function mkdir(dirname) {
 
 async function cd(dirname) {
     let curdir = await client.pwd();
-    await client.cd(path.join(curdir, dirname));
+    await client.cd(path.join(curdir, dirname).replace(/\\/gmi, '/'));
     updateList();
 }
 
@@ -261,7 +321,7 @@ async function connect(host = 'localhost', port = 21, user = 'guest', password =
     client.close();
     clearList('server');
     //clearInterval(updater);
-    //client.ftp.verbose = true;
+    client.ftp.verbose = true;
     try {
         await client.access({
             host: host,
@@ -269,15 +329,18 @@ async function connect(host = 'localhost', port = 21, user = 'guest', password =
             password: password,
             port: port
         });
+        hostname = host;
         //updater = setInterval(updateList, 1000);
         let pwd = await client.pwd();
         let list = await client.list();
         connection = true;
-        for (let i = 0; i < list.length; i++) {
-            if (list[i].type === 2) {
-                await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
-                    list[i].size = result.size;
-                });
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            for (let i = 0; i < list.length; i++) {
+                if (list[i].type === 2) {
+                    await dirSize(pwd === '/' ? '/' + list[i].name : pwd + '/' + list[i].name).then(result => {
+                        list[i].size = result.size;
+                    });
+                }
             }
         }
         mainWindow.webContents.send('ftp:pwd', pwd);

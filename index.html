@@ -79,7 +79,19 @@
 
         $('.file-list').on('mousemove', e => {
             let item = $('.file-list-item:hover');
-            console.log(item.attr('name'));
+            // console.log(item.attr('name'));
+            $('.file-list-item').removeClass('selected');
+            if (item !== null) {
+                item.addClass('selected');
+            }
+        });
+
+        ipcRenderer.on('ftp:selected', e => {
+            let item = $('.selected');
+            let file = $('.selected .file-list-filename');
+            if (item !== null) {
+                ipcRenderer.send('ftp:selected', item.attr('name'), file.attr('name'));
+            }
         });
 
         ipcRenderer.on('ftp:pwd', (e, path) => {
@@ -109,17 +121,17 @@
             console.log(files);
             if (current_path !== '/') {
                 $('.server-file-list').append(
-                    `<div class="file-list-item" onclick="ipcRenderer.send('ftp:updir');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename">../</li></div>`
+                    `<div class="file-list-item" onclick="ipcRenderer.send('ftp:updir');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename" name="../">../</li></div>`
                 );
             }
             files.forEach(file => {
                 if (file.type === 2) {
                     $('.server-file-list').append(
-                        `<div class="file-list-item" name="dir" onclick="ipcRenderer.send('ftp:cd', '` + file.name + `');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename">` + file.name + ' (' + file.size + ` bytes)</li></div>`
+                        `<div class="file-list-item" name="dir" onclick="ipcRenderer.send('ftp:cd', '` + file.name + `');"><img class="file-list-img" src="./assets/img/file-list/dir.png"><li class="file-list-filename" name="` + file.name + `">` + file.name + ' (' + file.size + ` bytes)</li></div>`
                     );
                 } else if (file.type === 1) {
                     $('.server-file-list').append(
-                        `<div class="file-list-item" name="file"><img class="file-list-img" src="./assets/img/file-list/file.png"><li class="file-list-filename">` + file.name + ' (' + file.size + ` bytes)</li></div>`
+                        `<div class="file-list-item" name="file"><img class="file-list-img" src="./assets/img/file-list/file.png"><li class="file-list-filename" name="` + file.name + `">` + file.name + ' (' + file.size + ` bytes)</li></div>`
                     );
                 }
             });
