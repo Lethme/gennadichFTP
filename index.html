@@ -86,6 +86,10 @@
             }
         });
 
+        $('.server-del-btn-trigger').on('click', () => {
+            ipcRenderer.send('ftp:deldir');
+        });
+
         ipcRenderer.on('ftp:selected', e => {
             let item = $('.selected');
             let file = $('.selected .file-list-filename');

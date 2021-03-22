@@ -9,6 +9,7 @@ let mainWindow;
 let connectWindow;
 let promptWindow;
 let propertyWindow;
+let deleteDirWindow;
 
 let connection = false;
 let hostname = '';
@@ -275,8 +276,65 @@ ipcMain.on('ftp:updir', (e) => {
     if (!client.closed) cdup();
 });
 
-async function pwd() {
-    return await client.pwd();
+ipcMain.on('ftp:deldir', () => {
+    if (connection) {
+        deleteDirWindow = new BrowserWindow({
+            width: 700,
+            height: 180,
+            icon: __dirname + "/assets/img/icon.png",
+            slashes: true,
+            webPreferences: {
+                nativeWindowOpen: true,
+                nodeIntegrationInWorker: true,
+                nodeIntegration: true
+            },
+            parent: mainWindow,
+            modal: true,
+            maximizable: false,
+            fullscreenable: false,
+            resizable: false
+        });
+
+        deleteDirWindow.setMenu(Menu.buildFromTemplate(secondaryMenuTemplate));
+
+        deleteDirWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'deldir.html'),
+            protocol: 'file:',
+            slashes: true,
+        }));
+
+        deleteDirWindow.on('closed', () => {
+            deleteDirWindow = undefined;
+        });
+
+        ipcMain.on('ftp:deldir-size', (e, dirsize) => {
+            if (deleteDirWindow !== undefined) {
+                deleteDirWindow.close();
+                deleteDirWindow = undefined;
+            }
+            deleteDirectories(dirsize);
+        });
+    }
+});
+
+async function deleteDirectories(dirsize) {
+    if (connection) {
+        let pwd = await client.pwd();
+        let list = await client.list();
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].type === 2) {
+                let res = await dirSize(pwd === '/' ? pwd + list[i].name : pwd + '/' + list[i].name);
+                if (res.size > dirsize) {
+                    await removeDir(pwd === '/' ? pwd + list[i].name : pwd + '/' + list[i].name);
+                }
+            }
+        }
+        await updateList();
+    }
+}
+
+async function removeDir(directory) {
+    await client.removeDir(directory);
 }
 
 async function updateList() {
