@@ -404,7 +404,7 @@ async function connect(host = 'localhost', port = 21, user = 'guest', password =
         mainWindow.webContents.send('ftp:pwd', pwd);
         mainWindow.webContents.send('ftp:list', list);
     } catch (err) {
-        console.log(err);
+        dialog.showMessageBox(err);
     }
 }
 
@@ -420,19 +420,17 @@ async function disconnect() {
 async function dirSize(directory) {
     if (connection) {
         let list = await client.list(directory);
-        let directories = [];
         let size = 0;
-        list.forEach(file => {
+        for (const file of list) {
             if (file.type === 1) {
                 size += file.size;
             }
-            if (file.type === 2) directories.push(file);
-        });
-        for (const dir of directories) {
-            await dirSize(directory === '/' ? '/' + dir.name : directory + '/' + dir.name).then((res) => {
-                size += res.size;
-            });
+            if (file.type === 2) {
+                await dirSize(directory === '/' ? '/' + file.name : directory + '/' + file.name).then((res) => {
+                    size += res.size;
+                });
+            }
         }
-        return { size, directories };
+        return { size };
     }
 }
